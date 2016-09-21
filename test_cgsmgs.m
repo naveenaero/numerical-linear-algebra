@@ -1,14 +1,22 @@
-kappa = [1, 1e3, 1e6, 1e9];
-error = zeros(3,4);
-Qnorm = zeros(3,4);
-for i=length(kappa)
+clear;
+clc;
+kappa = [1,1e3,1e6,1e9];
+error = zeros(3,length(kappa));
+I = eye(100);
+for i=1:length(kappa)
     A = gallery('randsvd',100, kappa(i));
-    [Q1,R1] = cgsmgs(A, true);
-    [Q2, R2] = cgsmgs(A, false);
+    [Q1,R1] = gramschmidt(A, true);
+    [Q2,R2] = gramschmidt(A, false);
     [Q3,R3] = qr(A);
-    normA = norm(A);
-    error(1,i) = norm(A - Q1*R1)/normA;
-    error(2,i) = norm(A - Q2*R2)/normA;
-    error(3,i) = norm(A - Q3*R3)/normA;
-    Qnorm(:,i) = [norm(Q1), norm(Q2), norm(Q3)]';
+    error(1,i) = norm(Q1'*Q1 - I);
+    error(2,i) = norm(Q2'*Q2 - I);
+    error(3,i) = norm(Q3'*Q3 - I);
 end
+
+loglog( kappa,error(1,:), ...
+        kappa,error(2,:), ...
+        kappa,error(3,:));
+xlabel('kappa');
+ylabel('Relative l2 error norm');
+legend('Classical GS', 'Modified GS', 'Matlab QR');
+title('Comparison of Classical GS, Modified GS and Matlab QR factorisation');
